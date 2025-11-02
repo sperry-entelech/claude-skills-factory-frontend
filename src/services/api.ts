@@ -3,6 +3,16 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
+// Log the API URL being used (helpful for debugging)
+if (typeof window !== 'undefined') {
+  console.log('🔗 API Base URL:', API_BASE_URL);
+  console.log('🔗 Environment Variables:', {
+    VITE_API_URL: import.meta.env.VITE_API_URL,
+    MODE: import.meta.env.MODE,
+    PROD: import.meta.env.PROD,
+  });
+}
+
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 60000, // 60 seconds for Claude API calls
@@ -14,19 +24,42 @@ const apiClient = axios.create({
 // Request interceptor
 apiClient.interceptors.request.use(
   (config) => {
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
+    const fullUrl = `${config.baseURL}${config.url}`;
+    console.log(`🌐 API Request: ${config.method?.toUpperCase()} ${fullUrl}`);
+    console.log('🌐 Request Config:', {
+      baseURL: config.baseURL,
+      url: config.url,
+      fullURL: fullUrl,
+      headers: config.headers,
+    });
     return config;
   },
   (error) => {
+    console.error('❌ Request Error:', error);
     return Promise.reject(error);
   }
 );
 
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('✅ API Response:', response.status, response.config.url);
+    return response;
+  },
   (error) => {
-    console.error('API Error:', error.response?.data || error.message);
+    console.error('❌ API Error Details:', {
+      message: error.message,
+      code: error.code,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      config: {
+        method: error.config?.method,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        fullURL: `${error.config?.baseURL}${error.config?.url}`,
+      },
+    });
     return Promise.reject(error);
   }
 );
