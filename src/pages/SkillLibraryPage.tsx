@@ -25,9 +25,12 @@ function SkillLibraryPage() {
         search: search || undefined,
         type: filterType !== 'all' ? filterType : undefined,
       });
-      setSkills(response.skills);
-    } catch (error) {
+      setSkills(response.skills || []);
+    } catch (error: any) {
       console.error('Failed to load skills:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load skills library';
+      console.error('Error details:', errorMessage);
+      setSkills([]);
     } finally {
       setLoading(false);
     }
@@ -201,7 +204,7 @@ function SkillLibraryPage() {
                 <p className="text-sm text-slate-300 mb-4">{skill.description}</p>
               )}
 
-              {skill.metadata.tags.length > 0 && (
+              {skill.metadata?.tags && skill.metadata.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
                   {skill.metadata.tags.map((tag, i) => (
                     <span key={i} className="text-xs px-2 py-1 bg-slate-800 text-slate-300 rounded border border-slate-700">
@@ -212,7 +215,7 @@ function SkillLibraryPage() {
               )}
 
               {/* GitHub Published Status */}
-              {skill.metadata.github && (
+              {skill.metadata?.github && (
                 <div className="mb-4 p-3 bg-green-950/20 border border-green-800 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-semibold text-green-400 flex items-center">
@@ -223,7 +226,7 @@ function SkillLibraryPage() {
                     </span>
                   </div>
                   <a
-                    href={skill.metadata.github.repositoryUrl}
+                    href={skill.metadata?.github?.repositoryUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-blue-400 hover:underline block mb-2"
@@ -232,10 +235,10 @@ function SkillLibraryPage() {
                   </a>
                   <div className="flex items-center space-x-2">
                     <code className="flex-1 text-xs bg-slate-950 px-2 py-1 rounded border border-slate-800 overflow-x-auto text-slate-300">
-                      {skill.metadata.github.installCommand}
+                      {skill.metadata?.github?.installCommand}
                     </code>
                     <button
-                      onClick={() => copyToClipboard(skill.metadata.github!.installCommand)}
+                      onClick={() => copyToClipboard(skill.metadata?.github?.installCommand || '')}
                       className="px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition"
                       title="Copy install command"
                     >
@@ -254,7 +257,7 @@ function SkillLibraryPage() {
                 >
                   Download ZIP
                 </button>
-                {!skill.metadata.github && (
+                {!skill.metadata?.github && (
                   <button
                     onClick={() => handleOpenPublishModal(skill)}
                     className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition text-sm"
